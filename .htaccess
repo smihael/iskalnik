@@ -1,0 +1,27 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Serve frontend assets and APIs from the implementation folder.
+    RewriteRule ^public/(.*)$ engline/public/$1 [L]
+    RewriteRule ^api/(.*)$ engline/api/$1 [QSA,L]
+
+    # Old v2 URLs redirect to the root-level public URLs.
+    RewriteRule ^v2/?$ ./ [R=302,L,NC]
+    RewriteRule ^v2/(diplomske|diplome|kmpov|slovlit|literatura|upor|zgrom)/([0-9]+)/?$ $1/$2 [R=302,L,NC]
+    RewriteRule ^v2/(diplomske|diplome|kmpov|slovlit|literatura|upor|zgrom)/?$ $1 [R=302,L,NC]
+
+    # Legacy entry points collapse to root-level collection URLs.
+    RewriteRule ^ygrome(?:/(?:index\.php|results\.php)?)?$ zgrom [R=302,L,NC]
+    RewriteRule ^iskalniki-po-zbirkah(?:/index\.php)?/?$ http://www.slov.si/iskalniki/ [R=302,L,NC]
+    RewriteRule ^(diplomske|diplome|kmpov|slovlit|literatura|upor|zgrom)/(?:index\.php|results\.php)$ $1 [R=302,L,NC]
+    RewriteCond %{QUERY_STRING} (^|&)id=([0-9]+)(&|$) [NC]
+    RewriteRule ^(diplomske|diplome|kmpov|slovlit|literatura|upor|zgrom)/?$ $1/%2? [R=302,L,NC]
+
+    # Route root-level collection URLs before the existing legacy directories match.
+    RewriteRule ^(diplomske|diplome|kmpov|slovlit|literatura|upor|zgrom)/([0-9]+)/?$ engline/details.php?_route=detail&collection=$1&id=$2 [QSA,L,NC]
+    RewriteRule ^(diplomske|diplome|kmpov|slovlit|literatura|upor|zgrom)/?$ engline/index.php?_route=list&collection=$1 [QSA,L,NC]
+</IfModule>
+
+<IfModule mod_dir.c>
+    DirectoryIndex index.php
+</IfModule>

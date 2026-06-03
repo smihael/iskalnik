@@ -1,0 +1,49 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: slovsi_web
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    volumes:
+      - ./:/var/www/html
+    environment:
+      DB_HOST: ${DB_HOST:?Set DB_HOST in .env}
+      DB_NAME: ${DB_NAME:?Set DB_NAME in .env}
+      DB_USER: ${DB_USER:?Set DB_USER in .env}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+    depends_on:
+      - db
+
+  db:
+    image: mariadb:10.11
+    container_name: slovsi_db
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT:-3307}:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?Set MARIADB_ROOT_PASSWORD in .env}
+      MARIADB_DATABASE: ${DB_NAME:?Set DB_NAME in .env}
+      MARIADB_USER: ${DB_USER:?Set DB_USER in .env}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+    command: ["--character-set-server=utf8", "--collation-server=utf8_slovenian_ci"]
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./db.sql:/docker-entrypoint-initdb.d/01-db.sql:ro
+
+  phpmyadmin:
+    image: phpmyadmin:5.2-apache
+    container_name: slovsi_phpmyadmin
+    restart: unless-stopped
+    ports:
+      - "${PHPMYADMIN_PORT:-8081}:80"
+    environment:
+      PMA_HOST: ${PMA_HOST:?Set PMA_HOST in .env}
+      PMA_USER: ${PMA_USER:?Set PMA_USER in .env}
+      PMA_PASSWORD: ${PMA_PASSWORD:?Set PMA_PASSWORD in .env}
+    depends_on:
+      - db
+
+volumes:
+  db_data:
